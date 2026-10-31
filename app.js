@@ -598,8 +598,10 @@ async function loadLeaderboard() {
 async function loadVisitCount() {
   if (!SCRIPT_URL) return;
   try {
+    const visitorKey = getVisitVisitorKey();
     const endpoint = new URL(SCRIPT_URL);
     endpoint.searchParams.set('action', 'visitCount');
+    endpoint.searchParams.set('visitorKey', visitorKey);
     endpoint.searchParams.set('t', String(Date.now()));
     const response = await fetch(endpoint, { method: 'GET', mode: 'cors', cache: 'no-store' });
     if (!response.ok) throw new Error('HTTP error');
@@ -608,6 +610,33 @@ async function loadVisitCount() {
     document.querySelector('#visit-count').textContent = payload.visits.toLocaleString(window.getAppLanguage() === 'en' ? 'en' : 'es');
   } catch (requestError) {
     console.warn('Could not load visit count', requestError);
+  }
+}
+
+function getVisitVisitorKey() {
+  const storageKey = 'dino-crisis-visit-id-v1';
+  const createKey = () => {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    return `v-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  };
+  try {
+    let visitorKey = localStorage.getItem(storageKey);
+    if (!visitorKey) {
+      visitorKey = createKey();
+      localStorage.setItem(storageKey, visitorKey);
+    }
+    return visitorKey;
+  } catch {
+    try {
+      let visitorKey = sessionStorage.getItem(storageKey);
+      if (!visitorKey) {
+        visitorKey = createKey();
+        sessionStorage.setItem(storageKey, visitorKey);
+      }
+      return visitorKey;
+    } catch {
+      return createKey();
+    }
   }
 }
 

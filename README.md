@@ -12,7 +12,7 @@ La interfaz está disponible en español e inglés. El idioma inicial se detecta
 
 El leaderboard no muestra filas ficticias. Al cargar la página, espera las runs aprobadas de Apps Script y presenta un estado vacío si todavía no hay resultados. Si la URL o el despliegue no están disponibles, muestra un aviso en lugar de sustituir las runs por placeholders.
 
-El contador del pie registra cargas de página en las propiedades del Apps Script. Cuenta cada carga, incluidas recargas; no representa visitantes únicos ni filtra bots, y no guarda IP ni identificadores personales. Para activarlo, vuelve a desplegar `apps-script/Code.gs` como aplicación web; la interfaz consulta `GET?action=visitCount`.
+El contador del pie registra una vista por navegador cada cuatro horas mediante una clave aleatoria almacenada localmente y una caché temporal en Apps Script. No guarda IP ni identificadores personales. No representa visitantes únicos: distintos navegadores/dispositivos cuentan por separado, y borrar el almacenamiento local puede generar una nueva clave. Si la caché temporal de Apps Script expira antes de tiempo, podría contarse otra vista. Para activarlo, vuelve a desplegar `apps-script/Code.gs` como aplicación web; la interfaz consulta `GET?action=visitCount`.
 
 ## Login, submissions y moderación
 

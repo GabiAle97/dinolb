@@ -22,7 +22,8 @@ function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
 
   if (action === 'visitCount') {
-    return jsonOutput_({ visits: incrementVisitCount_() });
+    const visitorKey = e && e.parameter && e.parameter.visitorKey;
+    return jsonOutput_({ visits: incrementVisitCount_(visitorKey) });
   }
 
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -69,14 +70,27 @@ function doGet(e) {
   return jsonOutput_({ sheets: allSheets });
 }
 
-function incrementVisitCount_() {
+function incrementVisitCount_(visitorKey) {
+  const anonymousKey = String(visitorKey || '');
+  if (!/^[a-zA-Z0-9-]{20,80}$/.test(anonymousKey)) {
+    throw new Error('Invalid anonymous visitor key.');
+  }
+
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
+    const cache = CacheService.getScriptCache();
+    const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, anonymousKey, Utilities.Charset.UTF_8);
+    const cacheKey = 'visit-' + Utilities.base64EncodeWebSafe(digest).replace(/=+$/g, '');
+    if (cache.get(cacheKey)) {
+      return Number(PropertiesService.getScriptProperties().getProperty('TOTAL_PAGE_VIEWS')) || 0;
+    }
+
     const properties = PropertiesService.getScriptProperties();
     const currentCount = Number(properties.getProperty('TOTAL_PAGE_VIEWS')) || 0;
     const nextCount = currentCount + 1;
     properties.setProperty('TOTAL_PAGE_VIEWS', String(nextCount));
+    cache.put(cacheKey, 'counted', 14400);
     return nextCount;
   } finally {
     lock.releaseLock();
