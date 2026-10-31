@@ -1,0 +1,15 @@
+.visit-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #929d94;
+  font: 500 10px 'DM Mono', monospace;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.visit-counter strong {
+  color: var(--lime);
+  font-size: 12px;
+  font-weight: 500;
+}

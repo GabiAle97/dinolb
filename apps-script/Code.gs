@@ -19,8 +19,13 @@ const RUN_GAMES = [DEFAULT_RUN_GAME, 'DINO CRISIS MODERN EDITION'];
 const MAX_RESOURCE_MARKDOWN_LENGTH = 10000;
 
 function doGet(e) {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const action = e && e.parameter && e.parameter.action;
+
+  if (action === 'visitCount') {
+    return jsonOutput_({ visits: incrementVisitCount_() });
+  }
+
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
   if (action === 'messages') {
     return jsonOutput_({ messages: getPublicMessages_(spreadsheet) });
@@ -62,6 +67,20 @@ function doGet(e) {
   });
 
   return jsonOutput_({ sheets: allSheets });
+}
+
+function incrementVisitCount_() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const properties = PropertiesService.getScriptProperties();
+    const currentCount = Number(properties.getProperty('TOTAL_PAGE_VIEWS')) || 0;
+    const nextCount = currentCount + 1;
+    properties.setProperty('TOTAL_PAGE_VIEWS', String(nextCount));
+    return nextCount;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function getTwitchLiveStreams_(spreadsheet) {

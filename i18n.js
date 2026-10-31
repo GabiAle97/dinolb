@@ -108,6 +108,7 @@
     'ser vista.': 'to be seen.',
     'Comparte tu tiempo y el video de la run. Las submissions se revisan antes de aparecer en el leaderboard.': 'Share your time and run video. Submissions are reviewed before appearing on the leaderboard.',
     'FAN-MADE COMMUNITY PROJECT': 'FAN-MADE COMMUNITY PROJECT',
+    'VISITAS': 'PAGE VIEWS',
     'DINO CRISIS SPEEDRUNS': 'DINO CRISIS SPEEDRUNS',
     'EL': 'THE',
     'EN VIVO.': 'LIVE.',

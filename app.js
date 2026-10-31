@@ -595,6 +595,22 @@ async function loadLeaderboard() {
   }
 }
 
+async function loadVisitCount() {
+  if (!SCRIPT_URL) return;
+  try {
+    const endpoint = new URL(SCRIPT_URL);
+    endpoint.searchParams.set('action', 'visitCount');
+    endpoint.searchParams.set('t', String(Date.now()));
+    const response = await fetch(endpoint, { method: 'GET', mode: 'cors', cache: 'no-store' });
+    if (!response.ok) throw new Error('HTTP error');
+    const payload = await response.json();
+    if (!Number.isSafeInteger(payload.visits) || payload.visits < 1) throw new Error('Invalid visit count');
+    document.querySelector('#visit-count').textContent = payload.visits.toLocaleString(window.getAppLanguage() === 'en' ? 'en' : 'es');
+  } catch (requestError) {
+    console.warn('Could not load visit count', requestError);
+  }
+}
+
 async function loadTwitchStreams(forceRefresh = false) {
   const container = document.querySelector('#twitch-streams');
   const status = document.querySelector('#twitch-status');
@@ -1290,6 +1306,7 @@ async function reviewRun(runId, status, button) {
 render();
 switchView(location.hash === '#rules' ? 'rules' : location.hash === '#leaderboard' ? 'leaderboard' : location.hash === '#resources' ? 'resources' : 'home');
 loadLeaderboard();
+loadVisitCount();
 initializeOneSignal();
 restoreSession();
 document.addEventListener('app-language-change', () => {
