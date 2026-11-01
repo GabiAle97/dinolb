@@ -62,8 +62,109 @@ function formatDate(value) {
   const date = new Date(`${value}T12:00:00`);
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(window.getAppLanguage() === 'en' ? 'en' : 'es', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace('.', '').toUpperCase();
 }
+function renderGameStats() {
+  const container = document.querySelector('#game-stats');
+  if (!container) return;
+  container.replaceChildren();
+  [defaultGame, 'DINO CRISIS MODERN EDITION'].forEach(game => {
+    const gameRuns = runs.filter(run => (run.game || defaultGame) === game);
+    const players = new Map();
+    const now = new Date();
+    const targetMonth = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    const targetDay = Math.min(now.getDate(), new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate());
+    const activeSince = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), targetDay);
+    let totalSeconds = 0;
+    gameRuns.forEach(run => {
+      const nickname = String(run.nickname || run.player || '').trim();
+      if (nickname) {
+        const key = nickname.toLocaleLowerCase();
+        const runDate = new Date(`${run.date}T12:00:00`);
+        const previousDate = players.get(key);
+        if (!previousDate || (!Number.isNaN(runDate.getTime()) && (Number.isNaN(previousDate.getTime()) || runDate > previousDate))) players.set(key, runDate);
+      }
+      if (run.time) totalSeconds += secondsFromTime(run.time);
+    });
+    const activePlayers = [...players.values()].filter(date => !Number.isNaN(date.getTime()) && date >= activeSince).length;
+    const totalTime = formatTotalRunTime(totalSeconds);
+    const card = document.createElement('article');
+    card.className = 'game-stats-card';
+    const header = document.createElement('div');
+    header.className = 'game-stats-card-heading';
+    const title = document.createElement('h4');
+    title.textContent = `DINO CRISIS · ${gameLabels[game]}`;
+    title.dataset.i18nPreserve = '';
+    const metrics = document.createElement('div');
+    metrics.className = 'game-stats-metrics';
+    [
+      ['TOTAL RUNS', gameRuns.length],
+      ['TOTAL PLAYERS', players.size],
+      ['ACTIVE PLAYERS', activePlayers],
+      ['TOTAL RUN TIME', totalTime],
+    ].forEach(([label, value]) => {
+      const metric = document.createElement('div');
+      metric.className = 'game-stat';
+      const metricLabel = document.createElement('span');
+      metricLabel.textContent = label;
+      const metricValue = document.createElement('strong');
+      metricValue.textContent = typeof value === 'number'
+        ? value.toLocaleString(window.getAppLanguage() === 'en' ? 'en' : 'es')
+        : value;
+      metric.append(metricLabel, metricValue);
+      metrics.append(metric);
+    });
+    const recentHeading = document.createElement('h5');
+    recentHeading.className = 'recent-runs-heading';
+    recentHeading.textContent = 'RUNS RECIENTES';
+    const recentList = document.createElement('ul');
+    recentList.className = 'recent-runs-list';
+    const recentRuns = [...gameRuns].sort((a, b) => new Date(`${b.date}T12:00:00`) - new Date(`${a.date}T12:00:00`)).slice(0, 3);
+    if (!recentRuns.length) {
+      const empty = document.createElement('li');
+      empty.className = 'recent-runs-empty';
+      empty.textContent = 'Todavía no hay runs aprobadas.';
+      recentList.append(empty);
+    } else {
+      recentRuns.forEach(run => {
+        const item = document.createElement('li');
+        const details = document.createElement('div');
+        details.className = 'recent-run-details';
+        const player = document.createElement('strong');
+        player.textContent = run.nickname || run.player || '—';
+        player.dataset.i18nPreserve = '';
+        const metadata = document.createElement('span');
+        metadata.textContent = `${run.category} · ${formatDate(run.date)}`;
+        const time = document.createElement('strong');
+        time.className = 'recent-run-time';
+        time.textContent = run.time || '—';
+        details.append(player, metadata);
+        item.append(details, time);
+        recentList.append(item);
+      });
+    }
+    header.append(title);
+    card.append(header, metrics, recentHeading, recentList);
+    container.append(card);
+  });
+}
+function formatTotalRunTime(totalSeconds) {
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (days) return `${days}d ${String(hours).padStart(2, '0')}h`;
+  if (hours) return `${hours}h ${String(minutes).padStart(2, '0')}m`;
+  return `${minutes}m`;
+}
 function render() {
-  const filtered = runs.filter(run => (run.game || defaultGame) === selectedGame && run.category === selectedCategory && run.player.toLowerCase().includes(searchQuery));
+  renderGameStats();
+  const bestByPlayer = new Map();
+  runs
+    .filter(run => (run.game || defaultGame) === selectedGame && run.category === selectedCategory && String(run.nickname || run.player || '').toLowerCase().includes(searchQuery))
+    .forEach(run => {
+      const playerKey = String(run.nickname || run.player || '').trim().toLocaleLowerCase();
+      const currentBest = bestByPlayer.get(playerKey);
+      if (!currentBest || secondsFromTime(run.time) < secondsFromTime(currentBest.time)) bestByPlayer.set(playerKey, run);
+    });
+  const filtered = [...bestByPlayer.values()];
   filtered.sort((a, b) => secondsFromTime(a.time) - secondsFromTime(b.time));
   document.querySelector('#category-description').textContent = descriptions[selectedCategory];
   document.querySelector('#entries-count').textContent = `${String(filtered.length).padStart(2, '0')} ${filtered.length === 1 ? 'RUN' : 'RUNS'}`;

@@ -12,6 +12,8 @@ La interfaz está disponible en español e inglés. El idioma inicial se detecta
 
 El leaderboard no muestra filas ficticias. Al cargar la página, espera las runs aprobadas de Apps Script y presenta un estado vacío si todavía no hay resultados. Si la URL o el despliegue no están disponibles, muestra un aviso en lugar de sustituir las runs por placeholders.
 
+Las estadísticas de cada juego se calculan a partir de esas mismas runs aprobadas: total de runs, jugadores únicos por nickname, jugadores activos con una run en los últimos tres meses, suma de los tiempos y las tres runs más recientes por fecha de run.
+
 El contador del pie registra una vista por navegador cada cuatro horas mediante una clave aleatoria almacenada localmente y una caché temporal en Apps Script. No guarda IP ni identificadores personales. No representa visitantes únicos: distintos navegadores/dispositivos cuentan por separado, y borrar el almacenamiento local puede generar una nueva clave. Si la caché temporal de Apps Script expira antes de tiempo, podría contarse otra vista. Para activarlo, vuelve a desplegar `apps-script/Code.gs` como aplicación web; la interfaz consulta `GET?action=visitCount`.
 
 ## Login, submissions y moderación
