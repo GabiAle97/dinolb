@@ -39,6 +39,7 @@
         <button type="button" role="tab" aria-selected="false" data-view="home">HOME</button>
         <button class="nav-active" type="button" role="tab" aria-selected="true" data-view="leaderboard">LEADERBOARD</button>
         <button type="button" role="tab" aria-selected="false" data-view="resources">RECURSOS</button>
+        <button type="button" role="tab" aria-selected="false" data-view="stats">ESTADÍSTICAS</button>
         <button type="button" role="tab" aria-selected="false" data-view="rules">REGLAS</button>
       </nav>
       <div class="language-switch" role="group" aria-label="Idioma">
@@ -115,10 +116,6 @@
           <button type="button" class="game-tab active" role="tab" aria-selected="true" data-game="DINO CRISIS CUTSCENE SKIP MOD">DINO CRISIS · CUTSCENE SKIP MOD</button>
           <button type="button" class="game-tab" role="tab" aria-selected="false" data-game="DINO CRISIS MODERN EDITION">DINO CRISIS · MODERN EDITION</button>
         </div>
-        <section class="game-stats-section" aria-labelledby="game-stats-title">
-          <div class="game-stats-heading"><div class="eyebrow"><i></i> ESTADÍSTICAS DE JUEGO</div><h3 id="game-stats-title">ACTIVIDAD <span>DE LA COMUNIDAD</span></h3></div>
-          <div id="game-stats" class="game-stats-grid" aria-live="polite"></div>
-        </section>
         <div class="leaderboard-tools">
           <div class="category-tabs" role="tablist" aria-label="Categorías">
             <button class="category-tab active" role="tab" aria-selected="true" data-category="ANY%">ANY% <span>01</span></button>
@@ -143,6 +140,11 @@
           <div id="pending-runs" class="pending-runs"></div>
           <p id="moderation-message" class="moderation-message" aria-live="polite"></p>
         </section>
+      </section>
+
+      <section class="stats-view section-wrap" id="stats-view" hidden>
+        <div class="game-stats-heading"><div class="eyebrow"><i></i> ESTADÍSTICAS DE JUEGO</div><h1>ACTIVIDAD <span>DE LA COMUNIDAD</span></h1></div>
+        <div id="game-stats" class="game-stats-grid" aria-live="polite"></div>
       </section>
 
       <section class="my-runs-section section-wrap" id="my-runs-section" hidden>

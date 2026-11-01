@@ -321,13 +321,15 @@ function showToast(message) {
   window.setTimeout(() => toast.classList.remove('show'), 3600);
 }
 function switchView(view) {
-  activeView = ['home', 'rules', 'resources'].includes(view) ? view : 'leaderboard';
+  activeView = ['home', 'rules', 'resources', 'stats'].includes(view) ? view : 'leaderboard';
   const isHome = activeView === 'home';
   const isLeaderboard = activeView === 'leaderboard';
   const isResources = activeView === 'resources';
+  const isStats = activeView === 'stats';
   document.querySelector('#hero').hidden = true;
   document.querySelector('#home-view').hidden = !isHome;
   document.querySelector('#resources-view').hidden = !isResources;
+  document.querySelector('#stats-view').hidden = !isStats;
   document.querySelector('#leaderboard').hidden = !isLeaderboard;
   document.querySelector('#rules').hidden = activeView !== 'rules';
   document.querySelector('#submit-banner').hidden = true;
@@ -1434,7 +1436,7 @@ async function reviewRun(runId, status, button) {
 }
 
 render();
-switchView(location.hash === '#rules' ? 'rules' : location.hash === '#leaderboard' ? 'leaderboard' : location.hash === '#resources' ? 'resources' : 'home');
+switchView(location.hash === '#rules' ? 'rules' : location.hash === '#leaderboard' ? 'leaderboard' : location.hash === '#resources' ? 'resources' : location.hash === '#stats' ? 'stats' : 'home');
 loadLeaderboard();
 loadVisitCount();
 initializeOneSignal();

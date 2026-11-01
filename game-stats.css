@@ -1,18 +1,21 @@
-.game-stats-section {
+.stats-view {
   margin: 24px 0 30px;
+  min-height: 55vh;
 }
 
 .game-stats-heading {
   margin-bottom: 14px;
 }
 
+.game-stats-heading h1,
 .game-stats-heading h3 {
   margin: 7px 0 0;
   color: var(--text);
-  font: 700 25px/.95 var(--display);
+  font: 700 34px/.95 var(--display);
   letter-spacing: .5px;
 }
 
+.game-stats-heading h1 span,
 .game-stats-heading h3 span {
   color: var(--lime);
 }
@@ -136,8 +139,9 @@
 }
 
 @media(max-width:520px) {
-  .game-stats-section { margin: 20px 0 25px; }
-  .game-stats-heading h3 { font-size: 22px; }
+  .stats-view { margin: 20px 0 25px; }
+  .game-stats-heading h1,
+  .game-stats-heading h3 { font-size: 28px; }
   .game-stats-card { padding: 14px; }
   .game-stat { min-height: 68px; padding: 10px; }
   .game-stat strong { font-size: 17px; }

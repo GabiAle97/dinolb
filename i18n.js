@@ -3,6 +3,7 @@
   const translations = {
     'Navegación principal': 'Main navigation',
     'RECURSOS': 'RESOURCES',
+    'ESTADÍSTICAS': 'STATS',
     'REGLAS': 'RULES',
     'LOGIN GOOGLE PENDIENTE DE CONFIGURACIÓN': 'GOOGLE SIGN-IN NOT CONFIGURED',
     'MI PERFIL': 'MY PROFILE',
