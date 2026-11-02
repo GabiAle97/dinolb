@@ -51,7 +51,7 @@ Para habilitarlo, crea una aplicación en [Twitch Developer Console](https://dev
 - `TWITCH_CLIENT_ID`
 - `TWITCH_CLIENT_SECRET`
 
-El endpoint público `GET?action=twitchLive` usa client credentials desde el servidor, busca las categorías y compara los canales vinculados con todas las cuentas que hayan enviado una run (pendiente, aprobada o rechazada). La respuesta se cachea durante 60 segundos. Copia y despliega el `apps-script/Code.gs` actualizado para activarlo. El Home consulta Twitch al abrirse, al pulsar Actualizar y cada dos minutos mientras la pestaña permanezca abierta.
+El endpoint público `GET?action=twitchLive` usa client credentials desde el servidor, busca las categorías y recorre todas las páginas de streams y de canales vinculados con cuentas que hayan enviado una run (pendiente, aprobada o rechazada). La respuesta se cachea durante 60 segundos; el botón Actualizar fuerza una consulta nueva. Copia y despliega el `apps-script/Code.gs` actualizado para activarlo. El Home consulta Twitch al abrirse, al pulsar Actualizar y cada dos minutos mientras la pestaña permanezca abierta.
 
 Para habilitarlo:
 

@@ -50,7 +50,7 @@ function doGet(e) {
     return jsonOutput_({ runs: publicRuns, supportedGames: RUN_GAMES });
   }
   if (action === 'twitchLive') {
-    return jsonOutput_(getTwitchLiveStreams_(spreadsheet));
+    return jsonOutput_(getTwitchLiveStreams_(spreadsheet, e.parameter.refresh === '1'));
   }
   if (action === 'resources') {
     return jsonOutput_({ resources: getResources_(spreadsheet) });
@@ -97,10 +97,15 @@ function incrementVisitCount_(visitorKey) {
   }
 }
 
-function getTwitchLiveStreams_(spreadsheet) {
+function getTwitchLiveStreams_(spreadsheet, forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const cached = cache.get('twitch-live-dino-crisis-v3');
-  if (cached) return JSON.parse(cached);
+  const cacheKey = 'twitch-live-dino-crisis-v4';
+  if (forceRefresh) {
+    cache.remove(cacheKey);
+  } else {
+    const cached = cache.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+  }
 
   const properties = PropertiesService.getScriptProperties();
   const clientId = String(properties.getProperty('TWITCH_CLIENT_ID') || '').trim();
@@ -136,8 +141,9 @@ function getTwitchLiveStreams_(spreadsheet) {
     categoryResponses.forEach((response, index) => {
       if (response.getResponseCode() !== 200) throw new Error('Twitch no pudo buscar la categoría ' + categoryNames[index] + '.');
       const expected = categoryNames[index].toLowerCase();
-      const found = (JSON.parse(response.getContentText()).data || []).find(item => String(item.name || '').trim().toLowerCase() === expected);
-      if (found) categoryNamesById[String(found.id)] = String(found.name);
+      (JSON.parse(response.getContentText()).data || [])
+        .filter(item => String(item.name || '').trim().toLowerCase() === expected)
+        .forEach(item => { categoryNamesById[String(item.id)] = String(item.name); });
     });
 
     const submittedEmails = {};
@@ -148,7 +154,7 @@ function getTwitchLiveStreams_(spreadsheet) {
       const profile = profiles[email];
       if (profile && profile.twitchLogin) runnerProfiles[profile.twitchLogin] = profile;
     });
-    const runnerLogins = Object.keys(runnerProfiles).slice(0, 100);
+    const runnerLogins = Object.keys(runnerProfiles);
 
     const streamRequests = Object.keys(categoryNamesById).map(gameId => ({
       url: 'https://api.twitch.tv/helix/streams?game_id=' + encodeURIComponent(gameId) + '&first=100',
@@ -163,30 +169,50 @@ function getTwitchLiveStreams_(spreadsheet) {
       });
     }
 
-    const streamResponses = streamRequests.length ? UrlFetchApp.fetchAll(streamRequests) : [];
-    const streamsByLogin = {};
-    streamResponses.forEach(response => {
-      if (response.getResponseCode() !== 200) throw new Error('Twitch no pudo cargar los canales en directo.');
-      (JSON.parse(response.getContentText()).data || []).forEach(stream => {
-        const login = String(stream.user_login || '').toLowerCase();
-        if (!/^[a-z0-9_]{1,25}$/.test(login)) return;
-        if (!streamsByLogin[login]) streamsByLogin[login] = {
-          id: String(stream.id || ''), login: login,
-          name: String(stream.user_name || stream.user_login || ''),
-          title: String(stream.title || ''), game: String(stream.game_name || ''),
-          viewers: Number(stream.viewer_count || 0), language: String(stream.language || ''),
-          startedAt: String(stream.started_at || ''),
-          thumbnail: String(stream.thumbnail_url || '').replace('{width}', '640').replace('{height}', '360'),
-          dinoGames: [], isLeaderboardRunner: false, runnerNickname: ''
-        };
-        const streamInfo = streamsByLogin[login];
-        const matchedGame = categoryNamesById[String(stream.game_id || '')];
-        if (matchedGame && streamInfo.dinoGames.indexOf(matchedGame) === -1) streamInfo.dinoGames.push(matchedGame);
-        if (runnerProfiles[login]) {
-          streamInfo.isLeaderboardRunner = true;
-          streamInfo.runnerNickname = runnerProfiles[login].nickname;
+    let pendingRequests = streamRequests.map(request => ({ url: request.url, baseUrl: request.url }));
+    const seenPages = {};
+    const liveStreams = [];
+    while (pendingRequests.length) {
+      const responses = UrlFetchApp.fetchAll(pendingRequests.map(request => ({
+        url: request.url, headers: headers, muteHttpExceptions: true
+      })));
+      const nextRequests = [];
+      responses.forEach((response, index) => {
+        if (response.getResponseCode() !== 200) throw new Error('Twitch no pudo cargar los canales en directo.');
+        const payload = JSON.parse(response.getContentText());
+        (payload.data || []).forEach(stream => liveStreams.push(stream));
+        const cursor = payload.pagination && payload.pagination.cursor;
+        if (cursor) {
+          const baseUrl = pendingRequests[index].baseUrl;
+          const nextUrl = baseUrl + '&after=' + encodeURIComponent(cursor);
+          if (seenPages[nextUrl]) throw new Error('Twitch devolvió una página repetida al cargar los canales en directo.');
+          seenPages[nextUrl] = true;
+          nextRequests.push({ url: nextUrl, baseUrl: baseUrl });
         }
       });
+      pendingRequests = nextRequests;
+    }
+
+    const streamsByLogin = {};
+    liveStreams.forEach(stream => {
+      const login = String(stream.user_login || '').toLowerCase();
+      if (!/^[a-z0-9_]{1,25}$/.test(login)) return;
+      if (!streamsByLogin[login]) streamsByLogin[login] = {
+        id: String(stream.id || ''), login: login,
+        name: String(stream.user_name || stream.user_login || ''),
+        title: String(stream.title || ''), game: String(stream.game_name || ''),
+        viewers: Number(stream.viewer_count || 0), language: String(stream.language || ''),
+        startedAt: String(stream.started_at || ''),
+        thumbnail: String(stream.thumbnail_url || '').replace('{width}', '640').replace('{height}', '360'),
+        dinoGames: [], isLeaderboardRunner: false, runnerNickname: ''
+      };
+      const streamInfo = streamsByLogin[login];
+      const matchedGame = categoryNamesById[String(stream.game_id || '')];
+      if (matchedGame && streamInfo.dinoGames.indexOf(matchedGame) === -1) streamInfo.dinoGames.push(matchedGame);
+      if (runnerProfiles[login]) {
+        streamInfo.isLeaderboardRunner = true;
+        streamInfo.runnerNickname = runnerProfiles[login].nickname;
+      }
     });
 
     const streams = Object.keys(streamsByLogin).map(login => streamsByLogin[login]);
@@ -199,7 +225,7 @@ function getTwitchLiveStreams_(spreadsheet) {
     };
     const serialized = JSON.stringify(result);
     // CacheService limits each value; the live response itself can still include the full result.
-    if (serialized.length < 90000) cache.put('twitch-live-dino-crisis-v3', serialized, 60);
+    if (serialized.length < 90000) cache.put(cacheKey, serialized, 60);
     return result;
   } catch (error) {
     console.error('Twitch live lookup failed: ' + (error && error.stack ? error.stack : error));
