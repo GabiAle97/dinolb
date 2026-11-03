@@ -1242,12 +1242,10 @@ function renderGoogleSignInButton() {
   const button = document.querySelector('#google-signin-button');
   button.replaceChildren();
   google.accounts.id.renderButton(button, {
+    type: 'icon',
     theme: 'filled_black',
     size: 'large',
-    shape: 'pill',
-    text: 'signin_with',
-    width: 200,
-    logo_alignment: 'left',
+    shape: 'circle',
     locale: language,
   });
   googleButtonLanguage = language;
