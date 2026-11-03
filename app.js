@@ -321,11 +321,13 @@ function showToast(message) {
   window.setTimeout(() => toast.classList.remove('show'), 3600);
 }
 function switchView(view) {
-  activeView = ['home', 'rules', 'resources', 'stats'].includes(view) ? view : 'leaderboard';
+  activeView = ['home', 'rules', 'resources', 'stats', 'my-runs', 'notifications'].includes(view) ? view : 'leaderboard';
   const isHome = activeView === 'home';
   const isLeaderboard = activeView === 'leaderboard';
   const isResources = activeView === 'resources';
   const isStats = activeView === 'stats';
+  const isMyRuns = activeView === 'my-runs';
+  const isNotifications = activeView === 'notifications';
   document.querySelector('#hero').hidden = true;
   document.querySelector('#home-view').hidden = !isHome;
   document.querySelector('#resources-view').hidden = !isResources;
@@ -333,10 +335,8 @@ function switchView(view) {
   document.querySelector('#leaderboard').hidden = !isLeaderboard;
   document.querySelector('#rules').hidden = activeView !== 'rules';
   document.querySelector('#submit-banner').hidden = true;
-  if (!isLeaderboard) {
-    myRunsSection.hidden = true;
-    notificationsSection.hidden = true;
-  }
+  myRunsSection.hidden = !isMyRuns;
+  notificationsSection.hidden = !isNotifications;
   document.querySelectorAll('[data-view]').forEach(tab => {
     const active = tab.dataset.view === activeView;
     tab.classList.toggle('nav-active', active);
@@ -418,7 +418,7 @@ document.addEventListener('click', event => {
 });
 document.querySelector('.public-profile-close').addEventListener('click', () => publicProfileDialog.close());
 publicProfileDialog.addEventListener('click', event => { if (event.target === publicProfileDialog) publicProfileDialog.close(); });
-document.querySelector('#notifications-button').addEventListener('click', toggleNotifications);
+document.querySelector('#notifications-button').addEventListener('click', openNotifications);
 document.querySelector('#push-notifications-button').addEventListener('click', togglePushSubscription);
 document.querySelector('#sign-out-button').addEventListener('click', signOut);
 document.querySelector('#refresh-pending').addEventListener('click', loadPendingRuns);
@@ -1328,14 +1328,12 @@ function signOut() {
 
 async function loadMyRuns() {
   if (!idToken) return;
-  switchView('leaderboard');
+  switchView('my-runs');
   const list = document.querySelector('#my-runs-list');
-  myRunsSection.hidden = false;
   list.textContent = 'Cargando tus runs…';
   try {
     const result = await apiPost({ action: 'myRuns', idToken });
     renderRunCards(list, result.runs || [], true);
-    myRunsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (requestError) { list.textContent = requestError.message; }
 }
 
@@ -1385,12 +1383,9 @@ function renderNotifications(notifications) {
   });
 }
 
-async function toggleNotifications() {
+async function openNotifications() {
   if (!idToken) return;
-  switchView('leaderboard');
-  notificationsSection.hidden = !notificationsSection.hidden;
-  if (notificationsSection.hidden) return;
-  notificationsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  switchView('notifications');
   try {
     const result = await apiPost({ action: 'notifications', idToken });
     const notifications = result.notifications || [];
@@ -1446,7 +1441,12 @@ async function reviewRun(runId, status, button) {
 }
 
 render();
-switchView(location.hash === '#rules' ? 'rules' : location.hash === '#leaderboard' ? 'leaderboard' : location.hash === '#resources' ? 'resources' : location.hash === '#stats' ? 'stats' : 'home');
+const initialView = ['home', 'leaderboard', 'rules', 'resources', 'stats', 'my-runs', 'notifications'].includes(location.hash.slice(1))
+  ? location.hash.slice(1)
+  : 'home';
+switchView(initialView);
+if (initialView === 'my-runs') loadMyRuns();
+if (initialView === 'notifications') openNotifications();
 loadLeaderboard();
 loadVisitCount();
 initializeOneSignal();
