@@ -50,13 +50,18 @@
         <div id="google-signin-button"></div>
         <span id="auth-config-notice">LOGIN GOOGLE PENDIENTE DE CONFIGURACIÓN</span>
         <div class="account-box" id="account-box" hidden>
-          <span id="account-avatar" class="account-avatar" aria-hidden="true"></span>
-          <span id="account-name"></span>
-          <button type="button" class="account-action" id="edit-profile-button">MI PERFIL</button>
-          <button type="button" class="account-action" id="my-runs-button">MIS RUNS</button>
-          <button type="button" class="account-action" id="notifications-button">AVISOS <span id="notification-count" hidden>0</span></button>
-          <button type="button" class="account-action" id="push-notifications-button" hidden>ACTIVAR PUSH</button>
-          <button type="button" class="account-action" id="sign-out-button">SALIR</button>
+          <button type="button" class="account-menu-toggle" id="account-menu-toggle" aria-label="Opciones de perfil" aria-expanded="false" aria-controls="account-menu">
+            <span id="account-avatar" class="account-avatar" aria-hidden="true"></span>
+            <svg class="account-menu-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4" /></svg>
+          </button>
+          <div class="account-menu" id="account-menu" hidden>
+            <span class="account-menu-name" id="account-name"></span>
+            <button type="button" class="account-action" id="edit-profile-button">MI PERFIL</button>
+            <button type="button" class="account-action" id="my-runs-button">MIS RUNS</button>
+            <button type="button" class="account-action" id="notifications-button">AVISOS <span id="notification-count" hidden>0</span></button>
+            <button type="button" class="account-action" id="push-notifications-button" hidden>ACTIVAR PUSH</button>
+            <button type="button" class="account-action" id="sign-out-button">SALIR</button>
+          </div>
         </div>
       </div>
     </header>

@@ -405,6 +405,17 @@ resourceDescription.addEventListener('input', () => {
 document.querySelector('#search').addEventListener('input', event => { searchQuery = event.target.value.trim().toLowerCase(); render(); });
 document.querySelector('#my-runs-button').addEventListener('click', loadMyRuns);
 document.querySelector('#edit-profile-button').addEventListener('click', openEditProfile);
+const accountMenu = document.querySelector('#account-menu');
+const accountMenuToggle = document.querySelector('#account-menu-toggle');
+function setAccountMenuOpen(open) {
+  accountMenu.hidden = !open;
+  accountMenuToggle.setAttribute('aria-expanded', String(open));
+}
+accountMenuToggle.addEventListener('click', () => setAccountMenuOpen(accountMenu.hidden));
+document.querySelectorAll('#account-menu .account-action').forEach(button => button.addEventListener('click', () => setAccountMenuOpen(false)));
+document.addEventListener('click', event => {
+  if (!document.querySelector('#account-box').contains(event.target)) setAccountMenuOpen(false);
+});
 document.querySelector('.public-profile-close').addEventListener('click', () => publicProfileDialog.close());
 publicProfileDialog.addEventListener('click', event => { if (event.target === publicProfileDialog) publicProfileDialog.close(); });
 document.querySelector('#notifications-button').addEventListener('click', toggleNotifications);
@@ -413,6 +424,7 @@ document.querySelector('#sign-out-button').addEventListener('click', signOut);
 document.querySelector('#refresh-pending').addEventListener('click', loadPendingRuns);
 document.addEventListener('keydown', event => {
   if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) { event.preventDefault(); document.querySelector('#search').focus(); }
+  if (event.key === 'Escape' && !accountMenu.hidden) { setAccountMenuOpen(false); accountMenuToggle.focus(); }
   if (event.key === 'Escape' && dialog.open) dialog.close();
 });
 form.addEventListener('submit', event => {

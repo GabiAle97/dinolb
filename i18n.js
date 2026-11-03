@@ -285,6 +285,7 @@
   };
   const attributes = {
     'Idioma': 'Language',
+    'Opciones de perfil': 'Profile options',
     'Acceder con Google': 'Sign in with Google',
     'Acceder con Google. Se abre en una pestaña nueva': 'Sign in with Google. Opens in a new tab',
     'Botón de Acceder con Google': 'Google Sign-In button',
